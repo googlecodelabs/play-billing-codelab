@@ -17,6 +17,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    signingConfigs {
+        debug {
+            keyAlias 'codelab'
+            keyPassword 'codelab2017'
+            storePassword 'codelab2017'
+            storeFile file('billing_codelab_signature.jks')
+        }
+    }
 }
 
 dependencies {
