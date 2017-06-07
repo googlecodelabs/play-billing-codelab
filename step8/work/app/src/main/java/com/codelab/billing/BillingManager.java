@@ -15,7 +15,7 @@
  */
 package com.codelab.billing;
 
-import android.content.Context;
+import android.app.Activity;
 
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.PurchasesUpdatedListener;
@@ -23,7 +23,6 @@ import android.util.Log;
 
 import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.BillingClient.SkuType;
-import com.android.billingclient.BillingClientImpl;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.Purchase;
@@ -43,6 +42,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     private static final String TAG = "BillingManager";
 
     private final BillingClient mBillingClient;
+    private final Activity mActivity;
 
     private boolean mIsBillingClientConnected;
 
@@ -57,8 +57,9 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     private static final String SUBS_SKUS[] = {"gold_monthly", "gold_yearly"};
 
-    public BillingManager(Context context) {
-        mBillingClient = new BillingClientImpl(context, this);
+    public BillingManager(Activity activity) {
+        mActivity = activity;
+        mBillingClient = new BillingClient.Builder(mActivity).setListener(this).build();
         startServiceConnection(null);
     }
 
@@ -130,10 +131,11 @@ public class BillingManager implements PurchasesUpdatedListener {
         Runnable executeOnConnectedService = new Runnable() {
             @Override
             public void run() {
-                BillingFlowParams.Builder builder = new BillingFlowParams.Builder()
+                BillingFlowParams billingFlowParams = new BillingFlowParams.Builder()
                         .setType(billingType)
-                        .setSku(skuId);
-                mBillingClient.launchBillingFlow(builder.build());
+                        .setSku(skuId)
+                        .build();
+                mBillingClient.launchBillingFlow(mActivity, billingFlowParams);
             }
         };
 

@@ -15,13 +15,13 @@
  */
 package com.codelab.billing;
 
+import android.app.Activity;
 import android.content.Context;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import android.util.Log;
 
 import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.BillingClient.SkuType;
-import com.android.billingclient.BillingClientImpl;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.Purchase;
@@ -41,8 +41,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     private static final String TAG = "BillingManager";
 
     private final BillingClient mBillingClient;
-
-    private boolean mIsBillingClientConnected;
+    private final Activity mActivity;
 
     // Defining SKU constants from Google Play Developer Console
     private static final HashMap<String, List<String>> SKUS;
@@ -55,8 +54,9 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     private static final String SUBS_SKUS[] = {"gold_monthly", "gold_yearly"};
 
-    public BillingManager(Context context) {
-        mBillingClient = new BillingClientImpl(context, this);
+    public BillingManager(Activity activity) {
+        mActivity = activity;
+        mBillingClient = new BillingClient.Builder(mActivity).setListener(this).build();
         startServiceConnection(null);
     }
 

@@ -33,5 +33,5 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$project.TOOLS_VERSION"
     compile "com.android.support:support-annotations:$project.TOOLS_VERSION"
 
-    compile 'com.android.billingclient:billing:codelab'
+    compile 'com.android.billingclient:billing:dp-1'
 }

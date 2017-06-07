@@ -15,13 +15,12 @@
  */
 package com.codelab.billing;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import android.util.Log;
 
-import com.android.billingclient.api.BillingClient.BillingResponse;
-import com.android.billingclient.BillingClientImpl;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.Purchase;
@@ -37,13 +36,15 @@ public class BillingManager implements PurchasesUpdatedListener {
     private static final String TAG = "BillingManager";
 
     private final BillingClient mBillingClient;
+    private final Activity mActivity;
 
-    public BillingManager(Context context) {
-        mBillingClient = new BillingClientImpl(context, this);
+    public BillingManager(Activity activity) {
+        mActivity = activity;
+        mBillingClient = new BillingClient.Builder(mActivity).setListener(this).build();
         mBillingClient.startConnection(new BillingClientStateListener() {
             @Override
-            public void onBillingSetupFinished(@BillingResponse int billingResponse) {
-                if (billingResponse == BillingResponse.OK) {
+            public void onBillingSetupFinished(@BillingClient.BillingResponse int billingResponse) {
+                if (billingResponse == BillingClient.BillingResponse.OK) {
                     Log.i(TAG, "onBillingSetupFinished() response: " + billingResponse);
                 } else {
                     Log.w(TAG, "onBillingSetupFinished() error code: " + billingResponse);
