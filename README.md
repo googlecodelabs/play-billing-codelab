@@ -1,16 +1,16 @@
 # Play Billing Codelab
 
-Sample for Google Play Billing Codelab
+Sample application sources for Google Play Billing Codelab
 
 ## Introduction
 
 This sample is provided to demonstrate a new way of integration with Google Play In-app Billing.
-To read more please open your codelab page.
+To read more please open the codelab page.
 
 ## Support
 
 If you've found an error in this sample, please file an issue:
-https://github.com/googlesamples/android-play-billing/issues
+https://github.com/googlecodelabs/play-billing-codelab/issues
 
 ## License
 
@@ -33,4 +33,4 @@ the License.
 
 ## CHANGELOG
 
-   2017-04-23: Initial release
+   2017-06-07: Release for Play Billing Library Developer Preview
