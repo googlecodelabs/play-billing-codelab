@@ -34,4 +34,5 @@ the License.
 ## CHANGELOG
 
    2017-06-07: Release for Play Billing Library Developer Preview
+
    2017-09-18: Updated for Play Billing Library 1.0 release
