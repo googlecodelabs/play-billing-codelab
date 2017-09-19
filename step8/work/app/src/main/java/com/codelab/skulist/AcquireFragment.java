@@ -28,11 +28,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.SkuDetails;
-import com.android.billingclient.api.SkuDetails.SkuDetailsResult;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.codelab.GamePlayActivity;
 import com.codelab.sample.R;
@@ -122,12 +120,12 @@ public class AcquireFragment extends DialogFragment {
         final List<SkuRowData> inList = new ArrayList<>();
         SkuDetailsResponseListener responseListener = new SkuDetailsResponseListener() {
             @Override
-            public void onSkuDetailsResponse(SkuDetailsResult skuDetailsResult) {
+            public void onSkuDetailsResponse(int responseCode,
+                    List<SkuDetails> skuDetailsList) {
                 // If we successfully got SKUs, add a header in front of it
-                if (skuDetailsResult.getResponseCode() == BillingResponse.OK
-                        && skuDetailsResult.getSkuDetailsList() != null) {
+                if (responseCode == BillingResponse.OK && skuDetailsList != null) {
                     // Repacking the result for an adapter
-                    for (SkuDetails details : skuDetailsResult.getSkuDetailsList()) {
+                    for (SkuDetails details : skuDetailsList) {
                         Log.i(TAG, "Found sku: " + details);
                         inList.add(new SkuRowData(details.getSku(), details.getTitle(),
                                 details.getPrice(), details.getDescription(),

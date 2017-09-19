@@ -26,7 +26,8 @@ import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.SkuDetails.SkuDetailsResult;
+import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     public BillingManager(Activity activity) {
         mActivity = activity;
-        mBillingClient = new BillingClient.Builder(mActivity).setListener(this).build();
+        mBillingClient = BillingClient.newBuilder(mActivity).setListener(this).build();
         mBillingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(@BillingResponse int billingResponse) {
@@ -76,12 +77,15 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     public void querySkuDetailsAsync(@BillingClient.SkuType final String itemType,
-            final List<String> skuList, final SkuDetailsResponseListener listener) {
-        mBillingClient.querySkuDetailsAsync(itemType, skuList,
+                                     final List<String> skuList, final SkuDetailsResponseListener listener) {
+        SkuDetailsParams skuDetailsParams = SkuDetailsParams.newBuilder()
+                .setSkusList(skuList).setType(itemType).build();
+        mBillingClient.querySkuDetailsAsync(skuDetailsParams,
                 new SkuDetailsResponseListener() {
                     @Override
-                    public void onSkuDetailsResponse(SkuDetailsResult result) {
-                        listener.onSkuDetailsResponse(result);
+                    public void onSkuDetailsResponse(int responseCode,
+                                                     List<SkuDetails> skuDetailsList) {
+                        listener.onSkuDetailsResponse(responseCode, skuDetailsList);
                     }
                 });
     }
@@ -91,7 +95,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     public void startPurchaseFlow(String skuId, String billingType) {
-        BillingFlowParams billingFlowParams = new BillingFlowParams.Builder()
+        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                 .setType(billingType)
                 .setSku(skuId)
                 .build();

@@ -32,7 +32,6 @@ import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.SkuDetails;
-import com.android.billingclient.api.SkuDetails.SkuDetailsResult;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.codelab.GamePlayActivity;
 import com.codelab.sample.R;
@@ -124,13 +123,10 @@ public class AcquireFragment extends DialogFragment {
         mBillingProvider.getBillingManager().querySkuDetailsAsync(SkuType.INAPP, inAppSkus,
                 new SkuDetailsResponseListener() {
                     @Override
-                    public void onSkuDetailsResponse(SkuDetailsResult skuDetailsResult) {
-                         // If we successfully got SKUs, add a header in front of it
-                        if (skuDetailsResult.getResponseCode() == BillingResponse.OK
-                                && skuDetailsResult.getSkuDetailsList() != null) {
-                            List<SkuRowData> inList = new ArrayList<>();
-                            for (SkuDetails details : skuDetailsResult.getSkuDetailsList()) {
-                                // Add your logging here
+                    public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                        if (responseCode == BillingResponse.OK
+                                && skuDetailsList != null) {
+                            for (SkuDetails details : skuDetailsList) {
                                 Log.w(TAG, "Got a SKU: " + details);
                             }
                         }

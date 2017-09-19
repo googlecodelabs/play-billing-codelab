@@ -26,7 +26,8 @@ import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.SkuDetails.SkuDetailsResult;
+import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 
 import java.util.Arrays;
@@ -44,8 +45,6 @@ public class BillingManager implements PurchasesUpdatedListener {
     private final BillingClient mBillingClient;
     private final Activity mActivity;
 
-    private boolean mIsBillingClientConnected;
-
     // Defining SKU constants from Google Play Developer Console
     private static final HashMap<String, List<String>> SKUS;
     static
@@ -59,8 +58,8 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     public BillingManager(Activity activity) {
         mActivity = activity;
-        mBillingClient = new BillingClient.Builder(mActivity).setListener(this).build();
-        startServiceConnection(null);
+        mBillingClient = BillingClient.newBuilder(mActivity).setListener(this).build();
+        startServiceConnectionIfNeeded(null);
     }
 
     @Override
@@ -69,31 +68,36 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     /**
-     * Trying to restart service connection.
-     * <p>Note: It's just a primitive example - it's up to you to develop a real retry-policy.</p>
+     * Trying to restart service connection if it's needed or just execute a request.
+     * <p>Note: It's just a primitive example - it's up to you to implement a real retry-policy.</p>
      * @param executeOnSuccess This runnable will be executed once the connection to the Billing
      *                         service is restored.
      */
-    private void startServiceConnection(final Runnable executeOnSuccess) {
-        mBillingClient.startConnection(new BillingClientStateListener() {
-            @Override
-            public void onBillingSetupFinished(@BillingResponse int billingResponse) {
-                if (billingResponse == BillingResponse.OK) {
-                    Log.i(TAG, "onBillingSetupFinished() response: " + billingResponse);
-                    mIsBillingClientConnected = true;
-                    if (executeOnSuccess != null) {
-                        executeOnSuccess.run();
+    private void startServiceConnectionIfNeeded(final Runnable executeOnSuccess) {
+        if (mBillingClient.isReady()) {
+            if (executeOnSuccess != null) {
+                executeOnSuccess.run();
+            }
+        } else {
+            mBillingClient.startConnection(new BillingClientStateListener() {
+                @Override
+                public void onBillingSetupFinished(@BillingResponse int billingResponse) {
+                    if (billingResponse == BillingResponse.OK) {
+                        Log.i(TAG, "onBillingSetupFinished() response: " + billingResponse);
+                        if (executeOnSuccess != null) {
+                            executeOnSuccess.run();
+                        }
+                    } else {
+                        Log.w(TAG, "onBillingSetupFinished() error code: " + billingResponse);
                     }
-                } else {
-                    Log.w(TAG, "onBillingSetupFinished() error code: " + billingResponse);
                 }
-            }
-            @Override
-            public void onBillingServiceDisconnected() {
-                Log.w(TAG, "onBillingServiceDisconnected()");
-                mIsBillingClientConnected = false;
-            }
-        });
+
+                @Override
+                public void onBillingServiceDisconnected() {
+                    Log.w(TAG, "onBillingServiceDisconnected()");
+                }
+            });
+        }
     }
 
     public void querySkuDetailsAsync(@BillingClient.SkuType final String itemType,
@@ -102,24 +106,21 @@ public class BillingManager implements PurchasesUpdatedListener {
         Runnable executeOnConnectedService = new Runnable() {
             @Override
             public void run() {
-                mBillingClient.querySkuDetailsAsync(itemType, skuList,
+                SkuDetailsParams skuDetailsParams = SkuDetailsParams.newBuilder()
+                        .setSkusList(skuList).setType(itemType).build();
+                mBillingClient.querySkuDetailsAsync(skuDetailsParams,
                         new SkuDetailsResponseListener() {
                             @Override
-                            public void onSkuDetailsResponse(SkuDetailsResult result) {
-                                // If billing service was disconnected, we try to reconnect 1 time
-                                // (feel free to introduce your retry policy here).
-                                listener.onSkuDetailsResponse(result);
+                            public void onSkuDetailsResponse(int responseCode,
+                                    List<SkuDetails> skuDetailsList) {
+                                listener.onSkuDetailsResponse(responseCode, skuDetailsList);
                             }
                         });
             }
         };
 
-        if (mIsBillingClientConnected) {
-            executeOnConnectedService.run();
-        } else {
-            // If Billing client was disconnected, we retry 1 time and if success, execute the query
-            startServiceConnection(executeOnConnectedService);
-        }
+        // If Billing client was disconnected, we retry 1 time and if success, execute the query
+        startServiceConnectionIfNeeded(executeOnConnectedService);
     }
 
     public List<String> getSkus(@SkuType String type) {
@@ -131,7 +132,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         Runnable executeOnConnectedService = new Runnable() {
             @Override
             public void run() {
-                BillingFlowParams billingFlowParams = new BillingFlowParams.Builder()
+                BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                         .setType(billingType)
                         .setSku(skuId)
                         .build();
@@ -139,12 +140,8 @@ public class BillingManager implements PurchasesUpdatedListener {
             }
         };
 
-        if (mIsBillingClientConnected) {
-            executeOnConnectedService.run();
-        } else {
-            // If Billing client was disconnected, we retry 1 time and if success, execute the query
-            startServiceConnection(executeOnConnectedService);
-        }
+        // If Billing client was disconnected, we retry 1 time and if success, execute the query
+        startServiceConnectionIfNeeded(executeOnConnectedService);
     }
 
     public void destroy() {

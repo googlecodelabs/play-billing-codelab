@@ -40,7 +40,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     public BillingManager(Activity activity) {
         mActivity = activity;
-        mBillingClient = new BillingClient.Builder(mActivity).setListener(this).build();
+        mBillingClient = BillingClient.newBuilder(mActivity).setListener(this).build();
         mBillingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(@BillingClient.BillingResponse int billingResponse) {
